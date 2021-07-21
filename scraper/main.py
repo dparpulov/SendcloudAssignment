@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 import sqlite3
 import os
-from scrape import srape
 from db import *
 
 app = FastAPI()
@@ -60,8 +59,23 @@ async def user_following(user_id: int):
     return user_follows(cursor, user_id)
 
 
-@app.get("/load_default")
+@app.get("/feed/{feed_id}/items")
+async def show_feed_items(feed_id: int):
+    return get_specific_feed_items(cursor, feed_id)
+
+
+@app.get("/load_feeds_users")
 async def load_default():
     add_feeds(cursor, feeds)
     add_users(cursor, 5)
     return {"Feed and user tables populated"}
+
+
+@app.get("/all_items")
+async def show_all_items():
+    return get_all_items(cursor)
+
+
+@app.get("/update")
+async def force_update_items():
+    return update_items(cursor)

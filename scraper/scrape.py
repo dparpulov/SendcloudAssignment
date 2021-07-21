@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 
 
-def srape(feeds):
+def scrape_feeds(feeds):
     items = []
     for url in feeds:
         r = requests.get(url)

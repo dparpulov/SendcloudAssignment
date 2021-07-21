@@ -1,5 +1,4 @@
-
-from scrape import srape
+from scrape import scrape_feeds
 
 
 def create_all_tables(cursor):
@@ -20,7 +19,7 @@ def _create_feed_table(cursor):
 
 
 def add_feeds(cursor, feeds):
-    cursor.executemany("INSERT INTO feed VALUES(null, ?)",
+    cursor.executemany("INSERT OR IGNORE INTO feed VALUES(null, ?)",
                        [(f,) for f in feeds])
     return feeds
 
@@ -84,7 +83,7 @@ def get_feeds(cursor):
 
 
 def update_items(cursor):
-    items = srape(get_feeds(cursor))
+    items = scrape_feeds(get_feeds(cursor))
     # urls = [item["item_url"] for item in items]
     items = [tuple(item.values()) for item in items]
     cursor.executemany(
@@ -114,3 +113,26 @@ def user_follows(cursor, user_id):
         (user_id,),
     )
     return [row[0] for row in cursor.fetchall()]
+
+
+def get_all_items(cursor):
+    cursor.execute("SELECT * FROM item")
+    items = cursor.fetchall()
+    items = [tuple(item) for item in items]
+    # items = [tuple(item) for item in items]
+
+    return items, len(items)
+
+
+def get_specific_feed_items(cursor, feed_id):
+    cursor.execute(
+        """
+            SELECT *
+            FROM item
+            JOIN feed ON url = item.feed_url
+            WHERE feed._id = ?
+        """,
+        (feed_id,),
+    )
+    items = [tuple(item) for item in cursor.fetchall()]
+    return items
