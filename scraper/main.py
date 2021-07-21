@@ -64,6 +64,36 @@ async def show_feed_items(feed_id: int):
     return get_specific_feed_items(cursor, feed_id)
 
 
+@app.get("/user/{user_id}/reads/item/{item_id}")
+async def mark_read_item(user_id: int, item_id: int):
+    return add_read_item(cursor, user_id, item_id)
+
+
+@app.get("/user/{user_id}/show_read")
+async def read_items_global(user_id: int):
+    return show_all_read_items(cursor, user_id)
+
+
+@app.get("/user/{user_id}/show_unread")
+async def unread_items_global(user_id: int):
+    return show_all_unread_items(cursor, user_id)
+
+
+@app.get("/user/{user_id}/show_read/feed/{feed_id}")
+async def read_items_feed(user_id: int, feed_id: int):
+    return show_read_items_feed(cursor, user_id, feed_id)
+
+
+@app.get("/user/{user_id}/show_unread/feed/{feed_id}")
+async def unread_items_feed(user_id: int, feed_id: int):
+    return show_unread_items_feed(cursor, user_id, feed_id)
+
+
+@app.get("/update")
+async def force_update_items():
+    return update_items(cursor)
+
+
 @app.get("/load_feeds_users")
 async def load_default():
     add_feeds(cursor, feeds)
@@ -79,8 +109,3 @@ async def show_all_items():
 @app.get("/feed/{feed_id}/items")
 async def show_feed_items(feed_id: int):
     return get_specific_feed_items(cursor, feed_id)
-
-
-@app.get("/update")
-async def force_update_items():
-    return update_items(cursor)

@@ -136,3 +136,96 @@ def get_specific_feed_items(cursor, feed_id):
     )
     items = [tuple(item) for item in cursor.fetchall()]
     return items
+
+
+def add_read_item(cursor, user_id, item_id):
+    cursor.execute(
+        """
+            INSERT INTO user_read_item VALUES (?, ?)
+        """,
+        (user_id, item_id),
+    )
+
+
+def show_all_read_items(cursor, user_id):
+    cursor.execute(
+        """
+            SELECT *
+            FROM item
+            WHERE _id IN (SELECT item_id
+                        FROM user_read_item
+                        WHERE user_id = ?)
+            ORDER BY published DESC
+        """,
+        (user_id,),
+    )
+    items = [tuple(item) for item in cursor.fetchall()]
+    return items
+
+
+def show_all_unread_items(cursor, user_id):
+    cursor.execute(
+        """
+            SELECT *
+            FROM item
+            WHERE _id NOT IN (SELECT item_id
+                            FROM user_read_item
+                            WHERE user_id = ?)
+            ORDER BY published DESC
+        """,
+        (user_id,),
+    )
+    items = [tuple(item) for item in cursor.fetchall()]
+    return items
+
+
+def show_read_items_feed(cursor, user_id, feed_id):
+    cursor.execute(
+        """
+            SELECT url
+            FROM feed
+            WHERE _id = ?
+        """,
+        (feed_id,),
+    )
+    feed_url = cursor.fetchone()[0]
+    cursor.execute(
+        """
+            SELECT *
+            FROM item
+            WHERE _id IN (SELECT item_id
+                        FROM user_read_item
+                        WHERE user_id = ? )
+            AND feed_url = ?
+            ORDER BY published DESC            
+        """,
+        (user_id, feed_url),
+    )
+    items = [tuple(item) for item in cursor.fetchall()]
+    return items
+
+
+def show_unread_items_feed(cursor, user_id, feed_id):
+    cursor.execute(
+        """
+            SELECT url
+            FROM feed
+            WHERE _id = ?
+        """,
+        (feed_id,),
+    )
+    feed_url = cursor.fetchone()[0]
+    cursor.execute(
+        """
+            SELECT *
+            FROM item
+            WHERE _id NOT IN (SELECT item_id
+                        FROM user_read_item
+                        WHERE user_id = ? )
+            AND feed_url = ?
+            ORDER BY published DESC            
+        """,
+        (user_id, feed_url),
+    )
+    items = [tuple(item) for item in cursor.fetchall()]
+    return items
