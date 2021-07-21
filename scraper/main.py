@@ -40,10 +40,28 @@ def shutdown_event():
 
 @app.get("/")
 async def root():
-    return srape(feeds)
+    return get_feeds(cursor)
+
+
+@app.get("/user/{user_id}/follow/feed/{feed_id}")
+async def follow_feed_api(user_id: int, feed_id: int):
+    follow_feed(cursor, user_id, feed_id)
+    return {f"User {user_id} now follows feed {feed_id}"}
+
+
+@app.get("/user/{user_id}/unfollow/feed/{feed_id}")
+async def unfollow_feed_api(user_id: int, feed_id: int):
+    unfollow_feed(cursor, user_id, feed_id)
+    return {f"User {user_id} unfollowed feed {feed_id}"}
+
+
+@app.get("/following/{user_id}")
+async def user_following(user_id: int):
+    return user_follows(cursor, user_id)
 
 
 @app.get("/load_default")
 async def load_default():
     add_feeds(cursor, feeds)
     add_users(cursor, 5)
+    return {"Feed and user tables populated"}
