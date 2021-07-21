@@ -33,6 +33,8 @@ After that, you'll see it running and you can visit the API at:
 
 ## Class design decisions
 
+![Brainstorm](/rss_scraper_brainstorming.jpg )
+
 ### To do
 
 ## Questions?
