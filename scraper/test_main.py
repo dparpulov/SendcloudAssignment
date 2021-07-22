@@ -5,10 +5,15 @@ import asyncio
 from scraper.scrape import auto_update
 from db import *
 
-# def test_root():
-# response = client.get_feeds()
-# assert response.status_code == 200
-# assert response.json() == {"msg": "Hello world"}
+
+def test_show_all_items_check_status_code_equals_200():
+    response = requests.get("http://127.0.0.1:8000/all_items")
+    assert response.status_code == 200
+
+
+def test_user_follows_check_status_code_equals_200():
+    response = requests.get("http://127.0.0.1:8000/user/1/follows")
+    assert response.status_code == 200
 
 
 @pytest.mark.asyncio
