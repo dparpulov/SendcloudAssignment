@@ -1,6 +1,3 @@
-from scrape import scrape_feeds
-
-
 def create_all_tables(cursor):
     """
         This function calls all the create table functions at once
@@ -15,7 +12,7 @@ def create_all_tables(cursor):
 
 def _create_feed_table(cursor):
     """
-        This function creates the feed table
+        This function creates the feed table using the cursor
     """
     cursor.execute(
         """
@@ -41,6 +38,9 @@ def add_feeds(cursor, feeds):
 
 
 def _create_item_table(cursor):
+    """
+        This function creates the item table
+    """
     cursor.execute(
         """
             CREATE TABLE item
@@ -57,6 +57,9 @@ def _create_item_table(cursor):
 
 
 def _create_user_table(cursor):
+    """
+        This function creates the user table
+    """
     cursor.execute(
         """
             CREATE TABLE user
@@ -66,12 +69,22 @@ def _create_user_table(cursor):
 
 
 def add_users(cursor, user_amount):
+    """
+        This function populates the user table with data
+
+        Args:
+            user_amount (int): The number of users to be created
+    """
     cursor.executemany(
         "INSERT INTO user VALUES (null)", [() for _ in range(user_amount)]
     )
 
 
 def _create_follows_table(cursor):
+    """
+        This function creates the follow table
+        It stores which feeds are followed by which user
+    """
     cursor.execute(
         """CREATE TABLE follows
             (user_id integer, feed_id integer, 
@@ -83,6 +96,10 @@ def _create_follows_table(cursor):
 
 
 def _create_user_read_item_table(cursor):
+    """
+        This function creates the user_read_item table
+        It stores which items have been read by the users
+    """
     cursor.execute(
         """CREATE TABLE user_read_item
             (user_id integer, item_id integer, 
@@ -97,15 +114,24 @@ def get_feeds(cursor):
     return [row[0] for row in cursor.execute("SELECT url FROM feed")]
 
 
-def update_items(cursor):
-    items = scrape_feeds(get_feeds(cursor))
-    items = [tuple(item.values()) for item in items]
+def update_items(cursor, items):
     cursor.executemany(
         """INSERT OR IGNORE INTO item VALUES (null, ?, ?, ?, ?)""", items
     )
 
 
 def follow_feed(cursor, user_id, feed_id):
+    """
+        This function checks if the user and feed passed exist
+        and adds them to the follows table if they are not there
+
+        Args:
+            user_id (int): The id of the user
+            feed_id (int): The id of the feed
+
+        Return:
+            int: If the ids don't exist or are below 0 the function returns 0
+    """
     cursor.execute("SELECT COUNT(_id) FROM user")
     total_users = cursor.fetchone()[0]
     cursor.execute("SELECT COUNT(_id) FROM feed")
@@ -121,6 +147,14 @@ def follow_feed(cursor, user_id, feed_id):
 
 
 def unfollow_feed(cursor, user_id, feed_id):
+    """
+        This functions removes a row from the follows table
+        if it has the user_id and the feed_id
+
+        Args:
+            user_id (int): The id of the user
+            feed_id (int): The id of the feed    
+    """
     cursor.execute(
         """
         DELETE FROM follows WHERE user_id = ? AND feed_id = ?
@@ -130,6 +164,15 @@ def unfollow_feed(cursor, user_id, feed_id):
 
 
 def user_follows(cursor, user_id):
+    """
+        This functions returns the feed urls that the user follows
+
+        Args:
+            user_id (int): The id of the user
+
+        Returns:
+            list: returns all the feed urls that the user follows
+    """
     cursor.execute(
         """
             SELECT url
@@ -143,6 +186,12 @@ def user_follows(cursor, user_id):
 
 
 def get_all_items(cursor):
+    """
+        This function returns all of the items in the item table
+
+        Return:
+            list: returns all items from item table
+    """
     cursor.execute("SELECT * FROM item")
     items = cursor.fetchall()
     items = [tuple(item) for item in items]
@@ -151,6 +200,15 @@ def get_all_items(cursor):
 
 
 def get_specific_feed_items(cursor, feed_id):
+    """
+        This functions return all items that match the feed_id
+
+        Args:
+            feed_id (int): The id of the feed
+
+        Returns:
+            list: returns all the feed items that match the feed_id
+    """
     cursor.execute(
         """
             SELECT *
@@ -166,6 +224,17 @@ def get_specific_feed_items(cursor, feed_id):
 
 
 def add_read_item(cursor, user_id, item_id):
+    """
+        This function checks if the user and item passed exist
+        and adds them to the table user_read_item
+
+        Args:
+            user_id (int): The id of the user
+            item_id (int): The id of the item
+
+        Return:
+            int: If the ids don't exist or are below 0 the function returns 0
+    """
     cursor.execute("SELECT COUNT(_id) FROM user")
     total_users = cursor.fetchone()[0]
     cursor.execute("SELECT COUNT(_id) FROM item")
@@ -176,13 +245,23 @@ def add_read_item(cursor, user_id, item_id):
     else:
         cursor.execute(
             """
-                INSERT INTO user_read_item VALUES (?, ?)
+                INSERT OR IGNORE INTO user_read_item VALUES (?, ?)
             """,
             (user_id, item_id),
         )
 
 
 def show_all_read_items(cursor, user_id):
+    """
+        This function checks if the user has any read items
+        and returns them
+
+        Args:
+            user_id (int): The id of the user
+
+        Return:
+            list: returns all the read items
+    """
     cursor.execute(
         """
             SELECT *
@@ -199,6 +278,16 @@ def show_all_read_items(cursor, user_id):
 
 
 def show_all_unread_items(cursor, user_id):
+    """
+        This function checks if the user has any unread items
+        and returns them
+
+        Args:
+            user_id (int): The id of the user
+
+        Return:
+            list: returns all the unread items
+    """
     cursor.execute(
         """
             SELECT *
@@ -215,6 +304,17 @@ def show_all_unread_items(cursor, user_id):
 
 
 def show_read_items_feed(cursor, user_id, feed_id):
+    """
+        This function checks if the user has any read items
+        from a specific feed and returns them
+
+        Args:
+            user_id (int): The id of the user
+            feed_id (int): The id of the feed
+
+        Return:
+            list: returns all the read items from the feed
+    """
     cursor.execute(
         """
             SELECT *
@@ -236,6 +336,17 @@ def show_read_items_feed(cursor, user_id, feed_id):
 
 
 def show_unread_items_feed(cursor, user_id, feed_id):
+    """
+        This function checks if the user has any unread items
+        from a specific feed and returns them
+
+        Args:
+            user_id (int): The id of the user
+            feed_id (int): The id of the feed
+
+        Return:
+            list: returns all the unread items from the feed
+    """
     cursor.execute(
         """
             SELECT *

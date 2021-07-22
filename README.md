@@ -27,13 +27,17 @@ Then do one of the following
 OR
 
 - Run 'docker build -t rss_scraper .'
-- Run 'docker run -d --name rss_container -p 8000:8000 rssScraper'
+- Run 'docker run -d --name rss_container -p 8000:8000 rss_scraper'
 
 After that, you'll see it running and you can visit the API at:
 
 - http://127.0.0.1:8000/
 - http://127.0.0.1:8000/docs# - Swagger specification
 - http://127.0.0.1:8000/redoc
+
+To run the tests run the following command in the cmd of the project
+
+- Run 'python -m pytest test_main.py' 
 
 
 ## About the program
@@ -45,14 +49,6 @@ The "RRS scraper" is containerized with docker and you can:
 - Read different items
 - See which items a user has read or hasn't read yet from all or from a specific feed
 - Feeds are automatically updated periodically
-
-## Cool technical stuff
-
-### To do
-
-## Class design decisions
-
-### To do
 
 ### Early design
 

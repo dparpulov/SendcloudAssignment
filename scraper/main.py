@@ -1,7 +1,7 @@
+from scrape import *
 import requests
 from starlette.responses import JSONResponse
 from scrape import UnavailableScrape
-# import winsound
 from fastapi import FastAPI
 import sqlite3
 import os
@@ -47,7 +47,7 @@ def startup_event():
     create_all_tables(cursor)
     add_feeds(cursor, feeds)
     add_users(cursor, 5)
-    asyncio.create_task(auto_update())
+    asyncio.create_task(auto_update(cursor, feeds))
 
 
 @app.on_event("shutdown")
@@ -132,7 +132,8 @@ async def unread_items_feed(user_id: int, feed_id: int):
 
 @app.post("/update")
 async def force_update_items():
-    return update_items(cursor)
+    items = scrape_feeds(feeds)
+    return update_items(cursor, items)
 
 
 # @app.get("/load_feeds_users")
@@ -152,12 +153,6 @@ async def show_feed_items(feed_id: int):
     return get_specific_feed_items(cursor, feed_id)
 
 
-# def make_noise():
-#     duration = 1000  # milliseconds
-#     freq = 440  # Hz
-#     winsound.Beep(freq, duration)
-
-
 @app.exception_handler(UnavailableScrape)
 async def scraper_exception_handler(request: requests, exc: UnavailableScrape):
     return JSONResponse(
@@ -165,27 +160,3 @@ async def scraper_exception_handler(request: requests, exc: UnavailableScrape):
         content={
             "message": f"Oops! {exc.name} did something. Scraping doesn't work"},
     )
-
-
-async def auto_update():
-    """
-        This function tries to update the feed items periodically
-
-        Every 3 failed attempts the system notifies the user with a sound
-        and a manual update is required
-    """
-    fail_attempts = 0
-
-    while True:
-        try:
-            if fail_attempts < 3:
-                print("Update INCOMIIIING!!!!!")
-                update_items(cursor)
-                await asyncio.sleep(10)
-        except UnavailableScrape:
-            fail_attempts += 1
-            print(f"Number of fails: {fail_attempts}")
-            await asyncio.sleep(3)
-            if fail_attempts == 3:
-                print("SCREAM THAT IT DIDNT WORK")
-                # make_noise()

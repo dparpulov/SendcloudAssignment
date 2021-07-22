@@ -1,11 +1,9 @@
+import pytest
+import asyncio
 import requests
-
-
-fake_db = {
-    "feed": {"id": "foo", "title": "Foo", "description": "There goes my hero"},
-    "bar": {"id": "bar", "title": "Bar", "description": "The bartenders"},
-}
-
+import asyncio
+from scraper.scrape import auto_update
+from db import *
 
 # def test_root():
 # response = client.get_feeds()
@@ -13,13 +11,14 @@ fake_db = {
 # assert response.json() == {"msg": "Hello world"}
 
 
-def test_follow_feed_endpoint():
-    # url = "http://127.0.0.1:8000/user/1/follow/feed/1"
-    # payload = "\"Working\""
-    # headers = {
-    #     'Content-Type': 'application/json'
-    # }
-    # response = requests.request("GET", url, headers=headers, data=payload)
-
-    # assert response.status_code == 200
-    assert 200 == 200
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "feeds_fail, expected",
+    [
+        ["https://guzvsadwa.com", "Auto update fail. Do it manually"],
+        ["https://google.com", "Auto update fail. Do it manually"],
+    ],
+)
+async def test_auto_update_fail(feeds_fail, expected):
+    result = await asyncio.create_task(auto_update(None, feeds_fail))
+    assert result == expected
