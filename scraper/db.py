@@ -2,6 +2,10 @@ from scrape import scrape_feeds
 
 
 def create_all_tables(cursor):
+    """
+        This function calls all the create table functions at once
+        Used to simplify the building of the db
+    """
     _create_feed_table(cursor)
     _create_item_table(cursor)
     _create_user_table(cursor)
@@ -10,6 +14,9 @@ def create_all_tables(cursor):
 
 
 def _create_feed_table(cursor):
+    """
+        This function creates the feed table
+    """
     cursor.execute(
         """
             CREATE TABLE feed
@@ -19,6 +26,15 @@ def _create_feed_table(cursor):
 
 
 def add_feeds(cursor, feeds):
+    """
+        This function populates the feed table with feeds
+
+        Args:
+            feeds (list): A list of feed urls for scraping
+
+        Returns:
+            list: The return value is a list of all scraped items
+    """
     cursor.executemany("INSERT OR IGNORE INTO feed VALUES(null, ?)",
                        [(f,) for f in feeds])
     return feeds

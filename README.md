@@ -20,13 +20,14 @@ The project was developed using FastAPI which is a python framework for building
 
 Then do one of the following
 
-- Run 'pip instsall -r requirements.txt'
+- Run 'cd scraper'
+- Run 'pip install -r requirements.txt'
 - Run 'uvicorn main:app'
 
 OR
 
-- Run 'docker build -t rssScraper .'
-- Run 'docker run -d --name 	rssContainer -p 8000:8000 rssScraper'
+- Run 'docker build -t rss_scraper .'
+- Run 'docker run -d --name rss_container -p 8000:8000 rssScraper'
 
 After that, you'll see it running and you can visit the API at:
 

@@ -1,7 +1,7 @@
 import requests
 from starlette.responses import JSONResponse
 from scrape import UnavailableScrape
-import winsound
+# import winsound
 from fastapi import FastAPI
 import sqlite3
 import os
@@ -30,14 +30,14 @@ feeds = [
 @app.on_event("startup")
 def startup_event():
     """
-    This function runs on every start up
-    It does the following things:
-        - creates the connection
-        - creates the cursor
-        - creates all tables specified in db.py
-        - populates the feeds table
-        - populates the users table
-        - creates the async background task which updates the feeds items
+        This function runs on every start up
+        It does the following things:
+            - creates the connection
+            - creates the cursor
+            - creates all tables specified in db.py
+            - populates the feeds table
+            - populates the users table
+            - creates the async background task which updates the feeds items
     """
     global connection
     connection = sqlite3.connect("scraper.db")
@@ -52,16 +52,34 @@ def startup_event():
 
 @app.on_event("shutdown")
 def shutdown_event():
+    """
+        This function stops the connection when the server process is stopped
+    """
     connection.close()
 
 
 @app.get("/")
 async def root():
+    """
+        This function calls the get_feeds function and
+        returns all the feeds from the db
+
+        Args: 
+            cursor: the db cursor
+    """
     return get_feeds(cursor)
 
 
 @app.post("/user/{user_id}/follow/feed/{feed_id}")
-async def follow_feed_api(user_id: int, feed_id: int):
+async def follow_feed_endpoint(user_id: int, feed_id: int):
+    """
+        This function calls the follow_feed function and
+        returns a message depending on if it is successful
+
+        Args:
+        user_id (int): The id of the user that will follow a feed
+        feed_id (int): The id of the feed that will be followed
+    """
     if follow_feed(cursor, user_id, feed_id) != 0:
         return {f"User {user_id} now follows feed {feed_id}"}
     else:
@@ -69,7 +87,7 @@ async def follow_feed_api(user_id: int, feed_id: int):
 
 
 @app.post("/user/{user_id}/unfollow/feed/{feed_id}")
-async def unfollow_feed_api(user_id: int, feed_id: int):
+async def unfollow_feed_endpoint(user_id: int, feed_id: int):
     unfollow_feed(cursor, user_id, feed_id)
     return {f"User {user_id} unfollowed feed {feed_id}"}
 
@@ -134,10 +152,10 @@ async def show_feed_items(feed_id: int):
     return get_specific_feed_items(cursor, feed_id)
 
 
-def make_noise():
-    duration = 1000  # milliseconds
-    freq = 440  # Hz
-    winsound.Beep(freq, duration)
+# def make_noise():
+#     duration = 1000  # milliseconds
+#     freq = 440  # Hz
+#     winsound.Beep(freq, duration)
 
 
 @app.exception_handler(UnavailableScrape)
@@ -150,7 +168,14 @@ async def scraper_exception_handler(request: requests, exc: UnavailableScrape):
 
 
 async def auto_update():
+    """
+        This function tries to update the feed items periodically
+
+        Every 3 failed attempts the system notifies the user with a sound
+        and a manual update is required
+    """
     fail_attempts = 0
+
     while True:
         try:
             if fail_attempts < 3:
@@ -162,4 +187,5 @@ async def auto_update():
             print(f"Number of fails: {fail_attempts}")
             await asyncio.sleep(3)
             if fail_attempts == 3:
-                make_noise()
+                print("SCREAM THAT IT DIDNT WORK")
+                # make_noise()
