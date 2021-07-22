@@ -84,7 +84,6 @@ def get_feeds(cursor):
 
 def update_items(cursor):
     items = scrape_feeds(get_feeds(cursor))
-    # urls = [item["item_url"] for item in items]
     items = [tuple(item.values()) for item in items]
     cursor.executemany(
         """INSERT OR IGNORE INTO item VALUES (null, ?, ?, ?, ?)""", items
@@ -92,13 +91,26 @@ def update_items(cursor):
 
 
 def follow_feed(cursor, user_id, feed_id):
-    cursor.execute("INSERT INTO follows VALUES (?, ?)", (user_id, feed_id))
+    cursor.execute("SELECT COUNT(_id) FROM user")
+    total_users = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(_id) FROM feed")
+    total_feeds = cursor.fetchone()[0]
+
+    if total_users < user_id or total_feeds < feed_id or user_id < 0 or feed_id < 0:
+        return 0
+    else:
+        cursor.execute(
+            """
+                INSERT OR IGNORE INTO follows VALUES (?, ?)
+            """, (user_id, feed_id))
 
 
 def unfollow_feed(cursor, user_id, feed_id):
     cursor.execute(
-        "DELETE FROM follows WHERE user_id = ? AND feed_id = ?", (
-            user_id, feed_id)
+        """
+        DELETE FROM follows WHERE user_id = ? AND feed_id = ?
+        """,
+        (user_id, feed_id)
     )
 
 
@@ -119,9 +131,8 @@ def get_all_items(cursor):
     cursor.execute("SELECT * FROM item")
     items = cursor.fetchall()
     items = [tuple(item) for item in items]
-    # items = [tuple(item) for item in items]
 
-    return items, len(items)
+    return items
 
 
 def get_specific_feed_items(cursor, feed_id):
@@ -129,22 +140,31 @@ def get_specific_feed_items(cursor, feed_id):
         """
             SELECT *
             FROM item
-            JOIN feed ON url = item.feed_url
-            WHERE feed._id = ?
+            WHERE feed_url = (SELECT url
+                              FROM feed
+                              WHERE _id = ?)
         """,
-        (feed_id,),
+        (feed_id,)
     )
-    items = [tuple(item) for item in cursor.fetchall()]
+    items = [item for item in cursor.fetchall()]
     return items
 
 
 def add_read_item(cursor, user_id, item_id):
-    cursor.execute(
-        """
-            INSERT INTO user_read_item VALUES (?, ?)
-        """,
-        (user_id, item_id),
-    )
+    cursor.execute("SELECT COUNT(_id) FROM user")
+    total_users = cursor.fetchone()[0]
+    cursor.execute("SELECT COUNT(_id) FROM item")
+    total_items = cursor.fetchone()[0]
+
+    if total_users < user_id or total_items < item_id or user_id < 0 or item_id < 0:
+        return 0
+    else:
+        cursor.execute(
+            """
+                INSERT INTO user_read_item VALUES (?, ?)
+            """,
+            (user_id, item_id),
+        )
 
 
 def show_all_read_items(cursor, user_id):
@@ -182,24 +202,19 @@ def show_all_unread_items(cursor, user_id):
 def show_read_items_feed(cursor, user_id, feed_id):
     cursor.execute(
         """
-            SELECT url
-            FROM feed
-            WHERE _id = ?
-        """,
-        (feed_id,),
-    )
-    feed_url = cursor.fetchone()[0]
-    cursor.execute(
-        """
             SELECT *
             FROM item
-            WHERE _id IN (SELECT item_id
+            WHERE _id IN (
+                        SELECT item_id
                         FROM user_read_item
                         WHERE user_id = ? )
-            AND feed_url = ?
+            AND feed_url IN (
+                        SELECT url
+                        FROM feed
+                        WHERE _id = ?)
             ORDER BY published DESC            
         """,
-        (user_id, feed_url),
+        (user_id, feed_id),
     )
     items = [tuple(item) for item in cursor.fetchall()]
     return items
@@ -208,24 +223,18 @@ def show_read_items_feed(cursor, user_id, feed_id):
 def show_unread_items_feed(cursor, user_id, feed_id):
     cursor.execute(
         """
-            SELECT url
-            FROM feed
-            WHERE _id = ?
-        """,
-        (feed_id,),
-    )
-    feed_url = cursor.fetchone()[0]
-    cursor.execute(
-        """
             SELECT *
             FROM item
             WHERE _id NOT IN (SELECT item_id
                         FROM user_read_item
                         WHERE user_id = ? )
-            AND feed_url = ?
+            AND feed_url IN (
+                        SELECT url
+                        FROM feed
+                        WHERE _id = ?)
             ORDER BY published DESC            
         """,
-        (user_id, feed_url),
+        (user_id, feed_id),
     )
     items = [tuple(item) for item in cursor.fetchall()]
     return items

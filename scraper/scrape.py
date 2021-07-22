@@ -3,6 +3,11 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 
 
+class UnavailableScrape(Exception):
+    def __init__(self, name: str):
+        self.name = name
+
+
 def scrape_feeds(feeds):
     items = []
     for url in feeds:
@@ -28,4 +33,7 @@ def scrape_feeds(feeds):
                 'feed_url': url,
             }
             items.append(item)
+    if len(items) == 0:
+        raise UnavailableScrape("No items found in the given url")
+
     return items
