@@ -9,6 +9,18 @@ class UnavailableScrape(Exception):
 
 
 def scrape_feeds(feeds):
+    """
+        This function iterates over the feed urls and scrapes each item using BS
+
+        Args:
+            feeds (list): A list of feed urls for scraping
+
+        Returns:
+            list: The return value is a list of all scraped items
+
+        Raises:
+            UnavailableScrape: if there are no scraped items at the end
+    """
     items = []
     for url in feeds:
         r = requests.get(url)

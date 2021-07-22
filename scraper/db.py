@@ -78,7 +78,6 @@ def _create_user_read_item_table(cursor):
 
 
 def get_feeds(cursor):
-    """This function returns all the feeds"""
     return [row[0] for row in cursor.execute("SELECT url FROM feed")]
 
 

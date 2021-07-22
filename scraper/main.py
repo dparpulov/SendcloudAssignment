@@ -29,6 +29,16 @@ feeds = [
 
 @app.on_event("startup")
 def startup_event():
+    """
+    This function runs on every start up
+    It does the following things:
+        - creates the connection
+        - creates the cursor
+        - creates all tables specified in db.py
+        - populates the feeds table
+        - populates the users table
+        - creates the async background task which updates the feeds items
+    """
     global connection
     connection = sqlite3.connect("scraper.db")
     connection.row_factory = sqlite3.Row
@@ -50,7 +60,7 @@ async def root():
     return get_feeds(cursor)
 
 
-@app.get("/user/{user_id}/follow/feed/{feed_id}")
+@app.post("/user/{user_id}/follow/feed/{feed_id}")
 async def follow_feed_api(user_id: int, feed_id: int):
     if follow_feed(cursor, user_id, feed_id) != 0:
         return {f"User {user_id} now follows feed {feed_id}"}
@@ -58,7 +68,7 @@ async def follow_feed_api(user_id: int, feed_id: int):
         return {"Invalid user or feed"}
 
 
-@app.get("/user/{user_id}/unfollow/feed/{feed_id}")
+@app.post("/user/{user_id}/unfollow/feed/{feed_id}")
 async def unfollow_feed_api(user_id: int, feed_id: int):
     unfollow_feed(cursor, user_id, feed_id)
     return {f"User {user_id} unfollowed feed {feed_id}"}
@@ -74,7 +84,7 @@ async def show_feed_items(feed_id: int):
     return get_specific_feed_items(cursor, feed_id)
 
 
-@app.get("/user/{user_id}/reads/item/{item_id}")
+@app.post("/user/{user_id}/reads/item/{item_id}")
 async def mark_read_item(user_id: int, item_id: int):
     if add_read_item(cursor, user_id, item_id) != 0:
         return {f"User {user_id} read article {item_id}"}
@@ -102,7 +112,7 @@ async def unread_items_feed(user_id: int, feed_id: int):
     return show_unread_items_feed(cursor, user_id, feed_id)
 
 
-@app.get("/update")
+@app.post("/update")
 async def force_update_items():
     return update_items(cursor)
 
