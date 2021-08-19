@@ -16,7 +16,7 @@ def _create_feed_table(cursor):
     """
     cursor.execute(
         """
-            CREATE TABLE feed
+            CREATE TABLE IF NOT EXISTS feed
             (_id integer primary key autoincrement, url text)
         """
     )
@@ -43,7 +43,7 @@ def _create_item_table(cursor):
     """
     cursor.execute(
         """
-            CREATE TABLE item
+            CREATE TABLE IF NOT EXISTS item
             (   
                 _id integer primary key autoincrement,
                 title text,
@@ -62,7 +62,7 @@ def _create_user_table(cursor):
     """
     cursor.execute(
         """
-            CREATE TABLE user
+            CREATE TABLE IF NOT EXISTS user
             (_id integer primary key autoincrement)
         """
     )
@@ -86,7 +86,7 @@ def _create_follows_table(cursor):
         It stores which feeds are followed by which user
     """
     cursor.execute(
-        """CREATE TABLE follows
+        """CREATE TABLE IF NOT EXISTS follows
             (user_id integer, feed_id integer, 
             primary key (user_id, feed_id), 
             foreign key (user_id) references user(id)
@@ -101,7 +101,7 @@ def _create_user_read_item_table(cursor):
         It stores which items have been read by the users
     """
     cursor.execute(
-        """CREATE TABLE user_read_item
+        """CREATE TABLE IF NOT EXISTS user_read_item
             (user_id integer, item_id integer, 
             primary key (user_id, item_id), 
             foreign key (user_id) references user(id)

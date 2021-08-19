@@ -1,19 +1,21 @@
+import os
 from scrape import *
 import requests
 from starlette.responses import JSONResponse
 from scrape import UnavailableScrape
 from fastapi import FastAPI
 import sqlite3
-import os
 from db import *
 import asyncio
+from models.feed import Feed
+
 
 app = FastAPI()
 
-try:
-    os.remove("scraper.db")
-except OSError:
-    pass
+# try:
+#   os.remove("scraper.db")
+# except OSError:
+#     pass
 
 
 connection = ...
