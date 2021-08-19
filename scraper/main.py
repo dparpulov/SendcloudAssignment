@@ -48,7 +48,7 @@ def startup_event():
     cursor = connection.cursor()
     create_all_tables(cursor)
     add_feeds(cursor, feeds)
-    add_users(cursor, 5)
+    #add_users(cursor, 5)
     asyncio.create_task(auto_update(cursor, feeds))
 
 
